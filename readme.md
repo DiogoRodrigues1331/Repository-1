@@ -8,7 +8,10 @@
 ### 2
 When we read values from the brake sensor (C1) and the apps (C3) we do not use the most recent reading and use instead a different approach. Explain the approach and why you think it is used.
 
-**Answer:** *Insert answer*
+**Answer:** When reading the values from brake sensor and apps, the programm doesn't use the most recent reading, instead it performs a "moving average".
+The programm picks the last few reads, and averages it. This method is used so that the reads can be more stable with smaller variation. I think this method also reduced eletrical noise and other interference with the sensors. Also this minimizes wrong data being produced due to spikes or drops, so the system is more reliable.
+Exemples of code used in 01
+
 
 
 ### 3
@@ -22,59 +25,47 @@ Check out the R2D(Ready To Drive) code on the C3 state machine. In the condition
             R2DStatus = DRIVING;
             break;
         }
+
 ```
 
-**Answer:** *Insert answer*
+**Answer:** According to the if statement above, if we want to switch the RD2status to DRIVING, the TS must on and r2dbutton must be pressed at the same time as the brakes. The value read of the brakes has to be above 165 in order for the brakes count as pressed. fell() tells us when the button is pressed down after being released (changes from LOW to HIGH). Well there is a problem if the driver presses the brake but quickly releases de r2dButton, because the value of brakes may drop below 165 before the car can switch to driving. To fix this problem, we use R2DTimer, when the brake value is above 165, the R2DTimes is reset to 0. Then, the driver has R2D_TIMEOUT miliseconds to release r2dButton without the car turning off.
 ### 4
 What is the ID of the can message sent to the bamocar to request torque?
-**Answer:** *Insert answer*
+**Answer:**  Based on the CAN Table available in the Team's Google Drive, there is a row with the comment "Torque Request to Bamocar." Therefore, the ID of the CAN message sent to the Bamocar to request torque is 0x201.  
+
 ### 5 
 The code below is not amazing, tell us some things you would change to improve it, you can write them down in text or correct the code:
 ```c++
-// this is a class for my car
-class mycar {
+// This is a class for my car
+class MyCar {
 private:
-    int sensor_reading1; // hydraulic pressure sensor
-    int sensor_reading2; // temperature sensor
-    int sensor_reading3; // humidity sensor
-    int sensor_reading4; // light sensor
-    int sensor_reading5; // sound sensor
-    int sensor_reading6; // distance sensor
-    int sensor_reading7; // accelerometer sensor
-    int sensor_reading8; // gyroscope sensor
-
-    int sensor_reading9; // old sensor, not used anymore
+    int sensorReadings[8]; // Array to store readings from 8 sensors
 
 public:
-    mycar() : sensor_reading1(0), sensor_reading2(0), sensor_reading3(0), sensor_reading4(0),
-            sensor_reading5(0), sensor_reading6(0), sensor_reading7(0), sensor_reading8(0) {}
-
-    // Method will update readings by analog reading and print them 
-    void updateprint() {
-        sensor_reading1 = analogRead(0); // pin 0 is connected to the hydraulic pressure sensor
-        sensor_reading2 = analogRead(1); // pin 1 is connected to the temperature sensor
-        sensor_reading3 = analogRead(2); // pin 2 is connected to the humidity sensor
-        sensor_reading4 = analogRead(3); // pin 3 is connected to the light sensor
-        sensor_reading5 = analogRead(4); // pin 4 is connected to the sound sensor
-        sensor_reading6 = analogRead(5); // pin 5 is connected to the distance sensor
-        sensor_reading7 = analogRead(6); // pin 6 is connected to the accelerometer sensor
-        sensor_reading8 = analogRead(7); // pin 7 is connected to the gyroscope sensor
-        func(sensor_reading1, sensor_reading2, sensor_reading3, sensor_reading4, 
-              sensor_reading5, sensor_reading6, sensor_reading7, sensor_reading8);// print the readings
+    // Constructor to initialize sensor readings to 0
+    MyCar() {
+        for (int i = 0; i < 8; i++) {
+            sensorReadings[i] = 0; // Set initial readings to 0
+        }
     }
 
-    // function to print the readings of the sensors
-    void func(int sensor_reading1, int sensor_reading2, int sensor_reading3, int sensor_reading4, 
-              int sensor_reading5, int sensor_reading6, int sensor_reading7, int sensor_reading8) {
-        Serial.print("Sensor Reading 1: "); Serial.println(sensor_reading1);
-        Serial.print("Sensor Reading 2: "); Serial.println(sensor_reading2);
-        Serial.print("Sensor Reading 3: "); Serial.println(sensor_reading3);
-        Serial.print("Sensor Reading 4: "); Serial.println(sensor_reading4);
-        Serial.print("Sensor Reading 5: "); Serial.println(sensor_reading5);
-        Serial.print("Sensor Reading 6: "); Serial.println(sensor_reading6);
-        Serial.print("Sensor Reading 7: "); Serial.println(sensor_reading7);
-        Serial.print("Sensor Reading 8: "); Serial.println(sensor_reading8);
-        //all readings were serial printed
+    // Method to update readings and print them
+    void updatePrint() {
+        for (int i = 0; i < 8; i++) {
+            sensorReadings[i] = analogRead(i); // Read sensor values from pins 0 to 7
+        }
+        printReadings(); // Call the method to print readings
+    }
+
+    // Function to print the readings of the sensors
+    void printReadings() {
+        for (int i = 0; i < 8; i++) {
+            Serial.print("Sensor Reading ");
+            Serial.print(i + 1); // Print sensor index (1-based)
+            Serial.print(": ");
+            Serial.println(sensorReadings[i]); // Print the reading
+        }
+        // All readings have been printed
     }
 };
 ```
